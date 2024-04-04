@@ -9,6 +9,12 @@
 # DeiT: https://github.com/facebookresearch/deit
 # --------------------------------------------------------
 
+from functools import partial
+
+import torch
+import torch.nn as nn
+
+import timm.models.vision_transformer
         
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
     """ Vision Transformer with support for global average pooling"""
