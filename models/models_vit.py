@@ -15,12 +15,16 @@ import torch
 import torch.nn as nn
 
 import timm.models.vision_transformer
+
+from attention import Attention, Block 
         
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
-    """ Vision Transformer with support for global average pooling"""
+    """ Vision Transformer with support for global average pooling
+            
+    """
     def __init__(self, 
                  global_pool=False, 
-                 
+                 block_fn=Block,
                  **kwargs):
         super(VisionTransformer, self).__init__(**kwargs)
 
