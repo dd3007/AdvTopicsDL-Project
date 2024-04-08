@@ -16,10 +16,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from timm.models.vision_transformer import PatchEmbed, Mlp
-
-from util.pos_embed import get_2d_sincos_pos_embed
-
 from attention import Attention, Block 
+from util.pos_embed import get_2d_sincos_pos_embed
 
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -65,7 +63,7 @@ class MaskedAutoencoderViT(nn.Module):
 
         self.decoder_norm = norm_layer(decoder_embed_dim)
 
-        # Distill 
+        # Distillation 
         if mixup_disentangled_target:
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size ** 2 * in_chans * 3, bias=True)
         elif distillation_disentangled_target is not None:
@@ -77,7 +75,6 @@ class MaskedAutoencoderViT(nn.Module):
 
         self.norm_pix_loss = norm_pix_loss
 
-        ## Distill
         self.aligned_blks_indices = aligned_blks_indices
 
         if self.aligned_blks_indices is not None:
@@ -85,10 +82,8 @@ class MaskedAutoencoderViT(nn.Module):
             distillation_loss_dict = dict(L1=nn.L1Loss(), L2=nn.MSELoss())
             self.distillation_criterion = distillation_loss_dict[embedding_distillation_func]
 
-
         self.initialize_weights()
 
-        # Distilled
         self.student_reconstruction_target = student_reconstruction_target
 
         if aligned_feature_projection_mode is not None:
@@ -522,6 +517,7 @@ class MaskedAutoencoderViT(nn.Module):
             raise NotImplementedError
         return loss, loss_distillation_embedding, pred, mask
     
+    
 def mae_vit_verytiny_patch16_dec512d8b(**kwargs):
     model = MaskedAutoencoderViT(
         patch_size=16, embed_dim=124, depth=12, num_heads=12,
@@ -570,6 +566,9 @@ def mae_vit_huge_patch14_dec512d8b(**kwargs):
     return model
 
 # set recommended archs
+mae_vit_vtiny_patch16_dec512d2 = mae_vit_vtiny_patch16_dec512d2b
+mae_vit_tiny_patch16_dec512d2 = mae_vit_tiny_patch16_dec512d2b
+mae_vit_small_patch16 = mae_vit_small_patch16_dec512d2b
 mae_vit_base_patch16 = mae_vit_base_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_large_patch16 = mae_vit_large_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_huge_patch14 = mae_vit_huge_patch14_dec512d8b  # decoder: 512 dim, 8 blocks
