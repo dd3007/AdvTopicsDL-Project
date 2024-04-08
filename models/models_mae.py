@@ -13,22 +13,13 @@ from functools import partial
 
 import torch
 import torch.nn as nn
-
-from timm.models.vision_transformer import PatchEmbed, Block
-
-from util.pos_embed import get_2d_sincos_pos_embed
-
-
-from functools import partial
-
-import torch
-import torch.nn as nn
-
-from timm.models.vision_transformer import PatchEmbed, Block, Mlp
-
-from util.pos_embed import get_2d_sincos_pos_embed
 import torch.nn.functional as F
 
+from timm.models.vision_transformer import PatchEmbed, Mlp
+
+from util.pos_embed import get_2d_sincos_pos_embed
+
+from attention import Attention, Block 
 
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
