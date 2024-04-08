@@ -64,6 +64,8 @@ class MaskedAutoencoderViT(nn.Module):
             for i in range(decoder_depth)])
 
         self.decoder_norm = norm_layer(decoder_embed_dim)
+
+        # Distill 
         if mixup_disentangled_target:
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size ** 2 * in_chans * 3, bias=True)
         elif distillation_disentangled_target is not None:
@@ -75,6 +77,7 @@ class MaskedAutoencoderViT(nn.Module):
 
         self.norm_pix_loss = norm_pix_loss
 
+        ## Distill
         self.aligned_blks_indices = aligned_blks_indices
 
         if self.aligned_blks_indices is not None:
@@ -82,8 +85,10 @@ class MaskedAutoencoderViT(nn.Module):
             distillation_loss_dict = dict(L1=nn.L1Loss(), L2=nn.MSELoss())
             self.distillation_criterion = distillation_loss_dict[embedding_distillation_func]
 
+
         self.initialize_weights()
 
+        # Distilled
         self.student_reconstruction_target = student_reconstruction_target
 
         if aligned_feature_projection_mode is not None:
@@ -111,6 +116,24 @@ class MaskedAutoencoderViT(nn.Module):
                 )
         else:
             self.aligned_feature_projection_heads = None
+
+    def get_local_attention_mask(self, img_size, patch_size):
+        h = w = img_size // patch_size
+        masks = []
+        for i in range(h):
+            for j in range(w):
+                mask = torch.zeros(h, w)
+
+                x_min = max(0, i - 1)
+                x_max = min(h - 1, i + 1)
+                y_min = max(0, j - 1)
+                y_max = min(w - 1, j + 1)
+
+                mask[x_min:x_max + 1, y_min:y_max + 1] = 1
+                #         print(x_min, x_max, y_min, y_max)
+                masks.append(mask.flatten())
+        masks = torch.stack(masks, dim=0).unsqueeze(dim=0)
+        return masks
 
     def initialize_weights(self):
         # initialization
