@@ -14,17 +14,14 @@ from functools import partial
 import torch
 import torch.nn as nn
 
-import timm.models.vision_transformer
-
-from attention import Attention, Block 
+import timm.models.vision_transformer 
         
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
     """ Vision Transformer with support for global average pooling
-            
+        Incorporates Flash Attention
     """
     def __init__(self, 
-                 global_pool=False, 
-                 block_fn=Block,
+                 global_pool=False,
                  **kwargs):
         super(VisionTransformer, self).__init__(**kwargs)
 
