@@ -17,6 +17,8 @@ import torch
 
 import util.misc as misc
 import util.lr_sched as lr_sched
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 def train_one_epoch(model: torch.nn.Module,
