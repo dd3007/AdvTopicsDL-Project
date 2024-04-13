@@ -1,3 +1,4 @@
 # AdvTopicsDL-Project
 
-### Code for MAE 
+### Code for Efficient MAE  
+#### Authors: Dani Dassum, Maximo Librandi, Manuel Paez

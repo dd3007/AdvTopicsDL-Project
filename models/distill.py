@@ -20,7 +20,7 @@ import timm.optim.optim_factory as optim_factory
 import util.misc as misc
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 
-import models_mae
+import models.models_mae_distill as models_mae_distill
 
 from engine_pretrain import train_one_epoch
 

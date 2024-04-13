@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.utils.checkpoint
 from torch.jit import Final
 
-from timm.models.vision_transformer import Mlp, PatchEmbed , _cfg
+from timm.models.vision_transformer import Mlp, PatchEmbed, _cfg, LayerScale
 
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 from timm.models.registry import register_model
@@ -35,6 +35,7 @@ class Attention(nn.Module):
             proj_drop: float = 0.,
             norm_layer: nn.Module = nn.LayerNorm,
     ) -> None:
+        
         super().__init__()
         assert dim % num_heads == 0, 'dim should be divisible by num_heads'
         self.num_heads = num_heads
@@ -73,21 +74,6 @@ class Attention(nn.Module):
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
-
-class LayerScale(nn.Module):
-    def __init__(
-            self,
-            dim: int,
-            init_values: float = 1e-5,
-            inplace: bool = False,
-    ) -> None:
-        super().__init__()
-        self.inplace = inplace
-        self.gamma = nn.Parameter(init_values * torch.ones(dim))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x.mul_(self.gamma) if self.inplace else x * self.gamma
-
 
 class Block(nn.Module):
     def __init__(
