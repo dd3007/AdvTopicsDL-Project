@@ -321,7 +321,7 @@ if __name__ == '__main__':
         if dataset_name == 'chexpert':
             dataset = CheXpert(csv_path="datasets/CheXpert-v1.0-small/train.csv", image_root_path='datasets/CheXpert-v1.0-small/', use_upsampling=False,
                                 use_frontal=True, mode='train', class_index=-1, transform=transform_train,
-                                heatmap_path=heatmap_path, pretraining=False)
+                                heatmap_path=heatmap_path, pretraining=True)
         elif dataset_name == 'chestxray_nih':
             dataset = ChestX_ray14('datasets/ChestXRay-14/images', 'datasets/ChestXRay-14/train_official.txt', augment=transform_train, num_class=14,
                                     heatmap_path=heatmap_path, pretraining=True)
