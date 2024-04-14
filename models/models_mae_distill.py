@@ -1,23 +1,16 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-# --------------------------------------------------------
-# References:
-# timm: https://github.com/rwightman/pytorch-image-models/tree/master/timm
-# DeiT: https://github.com/facebookresearch/deit
-# --------------------------------------------------------
-
 from functools import partial
 
 import torch
 import torch.nn as nn
+
+from timm.models.vision_transformer import PatchEmbed, Block, Mlp
+
+from util.pos_embed import get_2d_sincos_pos_embed
+
+
 import torch.nn.functional as F
 
-from timm.models.vision_transformer import PatchEmbed, Mlp
-from attention import Block 
-from util.pos_embed import get_2d_sincos_pos_embed
+
 
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -62,8 +55,6 @@ class MaskedAutoencoderViT(nn.Module):
             for i in range(decoder_depth)])
 
         self.decoder_norm = norm_layer(decoder_embed_dim)
-
-        # Distillation 
         if mixup_disentangled_target:
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size ** 2 * in_chans * 3, bias=True)
         elif distillation_disentangled_target is not None:
@@ -111,24 +102,6 @@ class MaskedAutoencoderViT(nn.Module):
                 )
         else:
             self.aligned_feature_projection_heads = None
-
-    def get_local_attention_mask(self, img_size, patch_size):
-        h = w = img_size // patch_size
-        masks = []
-        for i in range(h):
-            for j in range(w):
-                mask = torch.zeros(h, w)
-
-                x_min = max(0, i - 1)
-                x_max = min(h - 1, i + 1)
-                y_min = max(0, j - 1)
-                y_max = min(w - 1, j + 1)
-
-                mask[x_min:x_max + 1, y_min:y_max + 1] = 1
-                #         print(x_min, x_max, y_min, y_max)
-                masks.append(mask.flatten())
-        masks = torch.stack(masks, dim=0).unsqueeze(dim=0)
-        return masks
 
     def initialize_weights(self):
         # initialization
@@ -516,33 +489,33 @@ class MaskedAutoencoderViT(nn.Module):
         else:
             raise NotImplementedError
         return loss, loss_distillation_embedding, pred, mask
-    
-    
-def mae_distill_vit_vtiny_patch16_dec512d8b(**kwargs):
+
+
+def mae_vit_small_patch16_dec512d2b(**kwargs):
     model = MaskedAutoencoderViT(
-        patch_size=16, embed_dim=124, depth=12, num_heads=12,
+        patch_size=16, embed_dim=384, depth=12, num_heads=6,
+        decoder_embed_dim=512, decoder_depth=2, decoder_num_heads=16,
+        mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    return model
+
+
+def mae_vit_small_patch16_dec512d8b(**kwargs):
+    model = MaskedAutoencoderViT(
+        patch_size=16, embed_dim=384, depth=12, num_heads=6,
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
 
-def mae_distill_vit_tiny_patch16_dec512d8b(**kwargs):
+def mae_vit_base_patch16_dec512d2b(**kwargs):
     model = MaskedAutoencoderViT(
-        patch_size=16, embed_dim=192, depth=12, num_heads=12,
-        decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
+        patch_size=16, embed_dim=768, depth=12, num_heads=12,
+        decoder_embed_dim=512, decoder_depth=2, decoder_num_heads=16,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
 
-def mae_distill_vit_small_patch16_dec512d8b(**kwargs):
-    model = MaskedAutoencoderViT(
-        patch_size=16, embed_dim=384, depth=12, num_heads=12,
-        decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-        mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
-
-
-def mae_distill_vit_base_patch16_dec512d8b(**kwargs):
+def mae_vit_base_patch16_dec512d8b(**kwargs):
     model = MaskedAutoencoderViT(
         patch_size=16, embed_dim=768, depth=12, num_heads=12,
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
@@ -550,7 +523,7 @@ def mae_distill_vit_base_patch16_dec512d8b(**kwargs):
     return model
 
 
-def mae_distill_vit_large_patch16_dec512d8b(**kwargs):
+def mae_vit_large_patch16_dec512d8b(**kwargs):
     model = MaskedAutoencoderViT(
         patch_size=16, embed_dim=1024, depth=24, num_heads=16,
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
@@ -558,17 +531,17 @@ def mae_distill_vit_large_patch16_dec512d8b(**kwargs):
     return model
 
 
-def mae_distill_vit_huge_patch14_dec512d8b(**kwargs):
+def mae_vit_huge_patch14_dec512d8b(**kwargs):
     model = MaskedAutoencoderViT(
         patch_size=14, embed_dim=1280, depth=32, num_heads=16,
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
+
+
+
 # set recommended archs
-mae_vit_vtiny_patch16_dec512d2 = mae_vit_vtiny_patch16_dec512d2b
-mae_vit_tiny_patch16_dec512d2 = mae_vit_tiny_patch16_dec512d2b
-mae_vit_small_patch16 = mae_vit_small_patch16_dec512d2b
 mae_vit_base_patch16 = mae_vit_base_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_large_patch16 = mae_vit_large_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_huge_patch14 = mae_vit_huge_patch14_dec512d8b  # decoder: 512 dim, 8 blocks
