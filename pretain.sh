@@ -7,7 +7,7 @@ MODEL_NAME='latest.pth'
 CHESTXRAY_DIR='/mnt/home/mpaez/ceph/chestxray'
 CHEXPERTSMALL='/mnt/home/mpaez/ceph/CheXpert-v1.0-small'
 
-srun python -m torch.distributed.launch --nproc_per_node=${GPUS} \
+srun python -m torch.distributed.launch \
     --use_env /mnt/home/mpaez/AdvTopicsDL-Project/models/distill.py \
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
