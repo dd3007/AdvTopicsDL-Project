@@ -3,15 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-import pandas as pd
-import matplotlib.pyplot as plt
-
 from PIL import Image
-
 
 import torch
 from torch.utils.data import Dataset
-from torchvision import transforms
 from torchvision import transforms
 
 class ChestX_ray14(Dataset):
@@ -40,7 +35,6 @@ class ChestX_ray14(Dataset):
         else:
             self.heatmap = None
         self.pretraining = pretraining
-        self.pretraining = pretraining
 
     def __len__(self):
         return len(self.img_list)
@@ -57,8 +51,6 @@ class ChestX_ray14(Dataset):
             label = torch.tensor(label, dtype=torch.float)
             if self.pretraining:
                 label = -1
-            if self.pretraining:
-                label = -1
             return img, label
         else:
             heatmap = self.heatmap
@@ -68,103 +60,7 @@ class ChestX_ray14(Dataset):
             label = torch.tensor(label, dtype=torch.float)
             if self.pretraining:
                 label = -1
-            if self.pretraining:
-                label = -1
             return [img, heatmap], label
-        
-class CheXpert(Dataset):
-    '''
-    Reference:
-        @inproceedings{yuan2021robust,
-            title={Large-scale Robust Deep AUC Maximization: A New Surrogate Loss and Empirical Studies on Medical Image Classification},
-            author={Yuan, Zhuoning and Yan, Yan and Sonka, Milan and Yang, Tianbao},
-            booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-            year={2021}
-            }
-    '''
-
-    def __init__(self,
-                 csv_path,
-                 image_root_path='',
-                 class_index=0,
-                 use_frontal=True,
-                 use_upsampling=True,
-                 flip_label=False,
-                 shuffle=True,
-                 seed=123,
-                 verbose=True,
-                 transform=None,
-                 upsampling_cols=['Cardiomegaly', 'Consolidation'],
-                 train_cols=['Cardiomegaly', 'Edema', 'Consolidation', 'Atelectasis', 'Pleural Effusion'],
-                 mode='train',
-                 heatmap_path=None,
-                 pretraining=False
-                 ):
-
-        # load data from csv
-        self.df = pd.read_csv(csv_path)
-        self.df['Path'] = self.df['Path'].str.replace('CheXpert-v1.0-small/', '')
-        self.df['Path'] = self.df['Path'].str.replace('CheXpert-v1.0/', '')
-        if use_frontal:
-            self.df = self.df[self.df['Frontal/Lateral'] == 'Frontal']
-
-            # upsample selected cols
-        if use_upsampling:
-            assert isinstance(upsampling_cols, list), 'Input should be list!'
-            sampled_df_list = []
-            for col in upsampling_cols:
-                print('Upsampling %s...' % col)
-                sampled_df_list.append(self.df[self.df[col] == 1])
-            self.df = pd.concat([self.df] + sampled_df_list, axis=0)
-
-        if heatmap_path is not None:
-            # self.heatmap = cv2.imread(heatmap_path)
-            self.heatmap = Image.open(heatmap_path).convert('RGB')
-
-        else:
-            self.heatmap = None
-
-        # impute missing values
-        for col in train_cols:
-            if col in ['Edema', 'Atelectasis']:
-                self.df[col].replace(-1, 1, inplace=True)
-                self.df[col].fillna(0, inplace=True)
-            elif col in ['Cardiomegaly', 'Consolidation', 'Pleural Effusion']:
-                self.df[col].replace(-1, 0, inplace=True)
-                self.df[col].fillna(0, inplace=True)
-            else:
-                self.df[col].fillna(0, inplace=True)
-
-        self._num_images = len(self.df)
-
-        # 0 --> -1
-        if flip_label and class_index != -1:  # In multi-class mode we disable this option!
-            self.df.replace(0, -1, inplace=True)
-
-            # shuffle data
-        if shuffle:
-            data_index = list(range(self._num_images))
-            np.random.seed(seed)
-            np.random.shuffle(data_index)
-            self.df = self.df.iloc[data_index]
-
-        assert class_index in [-1, 0, 1, 2, 3, 4], 'Out of selection!'
-        assert image_root_path != '', 'You need to pass the correct location for the dataset!'
-
-        if class_index == -1:  # 5 classes
-            print('Multi-label mode: True, Number of classes: [%d]' % len(train_cols))
-            self.select_cols = train_cols
-            self.value_counts_dict = {}
-            for class_key, select_col in enumerate(train_cols):
-                class_value_counts_dict = self.df[select_col].value_counts().to_dict()
-                self.value_counts_dict[class_key] = class_value_counts_dict
-        else:  # 1 class
-            self.select_cols = [train_cols[class_index]]  # this var determines the number of classes
-            self.value_counts_dict = self.df[self.select_cols[0]].value_counts().to_dict()
-
-        self.mode = mode
-        self.class_index = class_index
-
         
 class CheXpert(Dataset):
     '''
@@ -313,60 +209,7 @@ class CheXpert(Dataset):
     def data_size(self):
         return self._num_images
 
-        self._images_list = [image_root_path + path for path in self.df['Path'].tolist()]
-        if class_index != -1:
-            self._labels_list = self.df[train_cols].values[:, class_index].tolist()
-        else:
-            self._labels_list = self.df[train_cols].values.tolist()
-
-        if verbose:
-            if class_index != -1:
-                print('-' * 30)
-                if flip_label:
-                    self.imratio = self.value_counts_dict[1] / (self.value_counts_dict[-1] + self.value_counts_dict[1])
-                    print('Found %s images in total, %s positive images, %s negative images' % (
-                        self._num_images, self.value_counts_dict[1], self.value_counts_dict[-1]))
-                    print('%s(C%s): imbalance ratio is %.4f' % (self.select_cols[0], class_index, self.imratio))
-                else:
-                    self.imratio = self.value_counts_dict[1] / (self.value_counts_dict[0] + self.value_counts_dict[1])
-                    print('Found %s images in total, %s positive images, %s negative images' % (
-                        self._num_images, self.value_counts_dict[1], self.value_counts_dict[0]))
-                    print('%s(C%s): imbalance ratio is %.4f' % (self.select_cols[0], class_index, self.imratio))
-                print('-' * 30)
-            else:
-                print('-' * 30)
-                imratio_list = []
-                for class_key, select_col in enumerate(train_cols):
-                    imratio = self.value_counts_dict[class_key][1] / (
-                            self.value_counts_dict[class_key][0] + self.value_counts_dict[class_key][1])
-                    imratio_list.append(imratio)
-                    print('Found %s images in total, %s positive images, %s negative images' % (
-                        self._num_images, self.value_counts_dict[class_key][1], self.value_counts_dict[class_key][0]))
-                    print('%s(C%s): imbalance ratio is %.4f' % (select_col, class_key, imratio))
-                    print()
-                self.imratio = np.mean(imratio_list)
-                self.imratio_list = imratio_list
-                print('-' * 30)
-        self.pretraining = pretraining
-
-    @property
-    def class_counts(self):
-        return self.value_counts_dict
-
-    @property
-    def imbalance_ratio(self):
-        return self.imratio
-
-    @property
-    def num_classes(self):
-        return len(self.select_cols)
-
-    @property
-    def data_size(self):
-        return self._num_images
-
     def __len__(self):
-        return self._num_images
         return self._num_images
 
     def __getitem__(self, idx):
@@ -476,11 +319,11 @@ if __name__ == '__main__':
             heatmap_path = 'nih_bbox_heatmap.png'
 
         if dataset_name == 'chexpert':
-            dataset = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/', use_upsampling=False,
+            dataset = CheXpert(csv_path="../data/chexpert/train.csv", image_root_path='../data/chexpert/', use_upsampling=False,
                                 use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                                 heatmap_path=heatmap_path, pretraining=True)
         elif dataset_name == 'chestxray_nih':
-            dataset = ChestX_ray14('/mnt/home/mpaez/ceph/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
+            dataset = ChestX_ray14('../data/chestxray14/images', '../data/chestxray14/train_official.txt', augment=transform_train, num_class=14,
                                     heatmap_path=heatmap_path, pretraining=True)
         else:
             raise NotImplementedError
