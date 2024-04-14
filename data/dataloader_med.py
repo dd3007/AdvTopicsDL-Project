@@ -319,11 +319,11 @@ if __name__ == '__main__':
             heatmap_path = 'nih_bbox_heatmap.png'
 
         if dataset_name == 'chexpert':
-            dataset = CheXpert(csv_path="datasets/CheXpert-v1.0-small/train.csv", image_root_path='datasets/CheXpert-v1.0-small/', use_upsampling=False,
+            dataset = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/', use_upsampling=False,
                                 use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                                 heatmap_path=heatmap_path, pretraining=True)
         elif dataset_name == 'chestxray_nih':
-            dataset = ChestX_ray14('datasets/ChestXRay-14/images', 'datasets/ChestXRay-14/train_official.txt', augment=transform_train, num_class=14,
+            dataset = ChestX_ray14('/mnt/home/mpaez/ceph/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
                                     heatmap_path=heatmap_path, pretraining=True)
         else:
             raise NotImplementedError
