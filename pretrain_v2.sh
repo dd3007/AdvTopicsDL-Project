@@ -7,12 +7,16 @@ MODEL_NAME='latest.pth'
 CHESTXRAY_DIR='/mnt/home/mpaez/ceph/chestxray'
 CHEXPERTSMALL='/mnt/home/mpaez/ceph/CheXpert-v1.0-small'
 
+<<<<<<< HEAD
 
 OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --use_env main_distill.py \
+=======
+torchrun --standalone --nnodes 1 --nproc_per_node=$NUMBER_OF_GPUS main_distill.py \
+>>>>>>> 9c049fb (stupid changes)
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
-    --batch_size 128 \
+    --batch_size 32 \
     --accum_iter 4 \
     --model mae_vit_base_patch16_dec512d8b \
     --model_teacher mae_vit_large_patch16_dec512d8b \
