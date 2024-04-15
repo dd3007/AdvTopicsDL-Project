@@ -1,18 +1,17 @@
 #!/bin/bash
 
 EXP_NAME=distill_model
-GPUS=8
+GPUS=1
 SAVE_DIR1="/mnt/home/mpaez/ceph/distill/${EXP_NAME}_ver1/"
 MODEL_NAME='latest.pth'
 CHESTXRAY_DIR='/mnt/home/mpaez/ceph/chestxray'
 CHEXPERTSMALL='/mnt/home/mpaez/ceph/CheXpert-v1.0-small'
 
-
 OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --use_env /mnt/home/mpaez/AdvTopicsDL-Project/main_distill.py \
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
-    --batch_size 128 \
+    --batch_size 32 \
     --accum_iter 4 \
     --model mae_vit_base_patch16_dec512d8b \
     --model_teacher mae_vit_large_patch16_dec512d8b \
