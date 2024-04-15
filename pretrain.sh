@@ -7,10 +7,6 @@
 #SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-gpu=8
 
-module load slurm
-module load cuda
-module load cudnn
-
 master_node=$SLURMD_NODENAME
 
 EXP_NAME=distill_model
@@ -19,7 +15,7 @@ MODEL_NAME='latest.pth'
 CHESTXRAY_DIR='/mnt/home/mpaez/ceph/chestxray'
 CHEXPERTSMALL='/mnt/home/mpaez/ceph/CheXpert-v1.0-small'
 
-OMP_NUM_THREADS=1 srun python `which torchrun` --nnodes $SLURM_JOB_NUM_NODES --nproc_per_node $SLURM_GPUS_PER_NODE --rdzv_id $SLURM_JOB_ID --rdzv_backend c10d --rdzv_endpoint $master_node:29500 main_distill.py \ 
+srun python `which torchrun` --nnodes $SLURM_JOB_NUM_NODES --nproc_per_node $SLURM_GPUS_PER_NODE --rdzv_id $SLURM_JOB_ID --rdzv_backend c10d --rdzv_endpoint $master_node:29500 main_distill.py \ 
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
     --batch_size 128 \
