@@ -11,7 +11,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --log_dir ${SAVE_DIR1} \
     --batch_size 32 \
     --accum_iter 4 \
-    --model mae_vit_base_patch16_dec512d8b \
+    --model mae_vit_small_patch16_dec512d8b \
     --model_teacher mae_vit_large_patch16_dec512d8b \
     --mask_ratio 0.75 \
     --epochs 100 \
@@ -22,4 +22,4 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --aligned_blks_indices 8 \
     --teacher_aligned_blks_indices 17 \
     --embedding_distillation_func L1 \
-    --aligned_feature_projection_dim 768 1024
+    --aligned_feature_projection_dim 384 1024
