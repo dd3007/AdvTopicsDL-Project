@@ -3,7 +3,7 @@
 EXP_NAME=distill_model
 GPUS=1
 SAVE_DIR1="/mnt/home/mpaez/ceph/distill/${EXP_NAME}_ver1/"
-MODEL_NAME='latest.pth'
+MODEL_NAME='/mnt/home/mpaez/ceph/adp_model/mae_visualize_vit_large.pth'
 CHESTXRAY_DIR='/mnt/home/mpaez/ceph/chestxray'
 CHEXPERTSMALL='/mnt/home/mpaez/ceph/CheXpert-v1.0-small'
 
