@@ -1,0 +1,8 @@
+*.pth
+
+__pycache__
+
+data/chexpert/
+data/chestxray14/
+
+work_dirs/
