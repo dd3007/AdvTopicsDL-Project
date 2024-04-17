@@ -7,10 +7,7 @@ from timm.models.vision_transformer import PatchEmbed, Block, Mlp
 
 from util.pos_embed import get_2d_sincos_pos_embed
 
-
 import torch.nn.functional as F
-
-
 
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -491,6 +488,22 @@ class MaskedAutoencoderViT(nn.Module):
         return loss, loss_distillation_embedding, pred, mask
 
 
+def mae_vit_tiny_patch16_dec512d2b(**kwargs):
+    model = MaskedAutoencoderViT(
+        patch_size=16, embed_dim=192, depth=12, num_heads=3,
+        decoder_embed_dim=512, decoder_depth=2, decoder_num_heads=16,
+        mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    return model
+
+
+def mae_vit_tiny_patch16_dec512d8b(**kwargs):
+    model = MaskedAutoencoderViT(
+        patch_size=16, embed_dim=192, depth=12, num_heads=3,
+        decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
+        mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    return model
+
+
 def mae_vit_small_patch16_dec512d2b(**kwargs):
     model = MaskedAutoencoderViT(
         patch_size=16, embed_dim=384, depth=12, num_heads=6,
@@ -537,8 +550,6 @@ def mae_vit_huge_patch14_dec512d8b(**kwargs):
         decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
-
-
 
 
 # set recommended archs
