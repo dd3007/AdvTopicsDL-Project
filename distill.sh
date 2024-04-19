@@ -14,7 +14,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --model mae_vit_tiny_patch16_dec512d2b \
     --model_teacher mae_vit_base_patch16_dec512d8b \
     --mask_ratio 0.75 \
-    --epochs 100 \
+    --epochs 50 \
     --blr 1.5e-4 --weight_decay 0.05 \
     --data_path ${IMAGENET_DIR} \
     --teacher_model_path 'vit-b_CXR_0.5M_mae.pth' \
