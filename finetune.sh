@@ -14,8 +14,9 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} fi
     --model vit_tiny_patch16 \
     --finetune "./work_dirs/${FINETUNE_EXP_FOLDER}/${FINETUNE_MODEL_NAME}" \
     --epochs 100 \
-    --blr 5e-4 \
-    --weight_decay 0.05 --mixup 0.8 --cutmix 1.0 --reprob 0.25 \
+    --blr 2.5e-4 \
+    --weight_decay 0.05 --mixup 0 --cutmix 0 --reprob 0.25 \
+    --drop_path 0.2 \
     --layer_decay 0.55 \
     --dist_eval \
     --data_path ${IMAGENET_DIR} \
