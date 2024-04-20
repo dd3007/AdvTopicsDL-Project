@@ -9,9 +9,9 @@ from pathlib import Path
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.tensorboard import SummaryWriter
+import torchvision.transforms as transforms
 
 import timm
-
 assert timm.__version__ == "0.3.2" # version check
 from timm.models.layers import trunc_normal_
 from timm.data.mixup import Mixup
@@ -19,14 +19,12 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 
 import util.lr_decay as lrd
 import util.misc as misc
-from util.datasets import build_dataset
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
+from util.dataloader_medical import CheXpert, ChestX_ray14
 
-import models_vit
-
+import models.models_vit as models_vit
 from engine_finetune import train_one_epoch, evaluate
-
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE fine-tuning for image classification', add_help=False)
@@ -136,7 +134,7 @@ def get_args_parser():
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
-    parser.add_argument('--local_rank', default=-1, type=int)
+    parser.add_argument('--local-rank', default=-1, type=int)
     parser.add_argument('--dist_on_itp', action='store_true')
     parser.add_argument('--dist_url', default='env://',
                         help='url used to set up distributed training')
@@ -159,8 +157,62 @@ def main(args):
 
     cudnn.benchmark = True
 
-    dataset_train = build_dataset(is_train=True, args=args)
-    dataset_val = build_dataset(is_train=False, args=args)
+    # dataset_name = 'chexpert'
+    dataset_name = 'chestxray_nih'
+
+    mean_dict = { 'chexpert': [0.485, 0.456, 0.406], 'chestxray_nih': [0.5056, 0.5056, 0.5056] }
+    std_dict = { 'chexpert': [0.229, 0.224, 0.225], 'chestxray_nih': [0.252, 0.252, 0.252] }
+
+    # args variables not used here
+    random_resize_range = None
+    mask_strategy = None
+
+    dataset_mean = mean_dict[dataset_name]
+    dataset_std = std_dict[dataset_name]
+        
+    if random_resize_range:
+        if mask_strategy in ['heatmap_weighted', 'heatmap_inverse_weighted']:
+            resize_ratio_min, resize_ratio_max = random_resize_range
+            print(resize_ratio_min, resize_ratio_max)
+            # transform_train = custom_train_transform(size=args['input_size'],
+                                                        # scale=(resize_ratio_min, resize_ratio_max),
+                                                        # mean=dataset_mean, std=dataset_std)
+        else:
+            resize_ratio_min, resize_ratio_max = random_resize_range
+            print(resize_ratio_min, resize_ratio_max)
+            transform_train = transforms.Compose([
+                transforms.RandomResizedCrop(args.input_size, scale=(resize_ratio_min, resize_ratio_max),
+                                                interpolation=3),  # 3 is bicubic
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(dataset_mean, dataset_std)])
+    else:
+        print('Using Directly-Resize Mode. (no RandomResizedCrop)')
+        transform_train = transforms.Compose([
+            transforms.Resize((args.input_size, args.input_size)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(dataset_mean, dataset_std)]
+        )
+
+    heatmap_path = None
+    if mask_strategy in ['heatmap_weighted', 'heatmap_inverse_weighted']:
+        heatmap_path = 'nih_bbox_heatmap.png'
+
+    if dataset_name == 'chexpert':
+        dataset_train = CheXpert(csv_path="data/chexpert/train.csv", image_root_path='data/chexpert/', use_upsampling=False,
+                            use_frontal=True, mode='train', class_index=-1, transform=transform_train,
+                            heatmap_path=heatmap_path, pretraining=False)
+        dataset_val = CheXpert(csv_path="data/chexpert/valid.csv", image_root_path='data/chexpert/', use_upsampling=False,
+                            use_frontal=True, mode='valid', class_index=-1, transform=transform_train,
+                            heatmap_path=heatmap_path, pretraining=False)
+    elif dataset_name == 'chestxray_nih':
+        dataset_train = ChestX_ray14('data/chestxray14/images', 'data/chestxray14/train_official.txt', augment=transform_train, num_class=14,
+                                heatmap_path=heatmap_path, pretraining=False)
+        dataset_val = ChestX_ray14('data/chestxray14/images', 'data/chestxray14/val_official.txt', augment=transform_train, num_class=14,
+                                heatmap_path=heatmap_path, pretraining=False)
+    else:
+        raise NotImplementedError
 
     if True:  # args.distributed:
         num_tasks = misc.get_world_size()
