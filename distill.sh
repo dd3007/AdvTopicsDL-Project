@@ -6,7 +6,7 @@ MODEL_NAME='latest.pth'
 IMAGENET_DIR='data/imagenet'
 
 OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
-    --use_env distill.py \
+    --use_env main_distill.py \
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
     --batch_size 32 \

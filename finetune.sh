@@ -7,7 +7,7 @@ FINETUNE_EXP_FOLDER='distill_base_model_20240419'
 FINETUNE_MODEL_NAME='checkpoint-49.pth'
 IMAGENET_DIR='data/imagenet'
 
-OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} finetune.py \
+OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} main_finetune.py \
     --output_dir ${SAVE_DIR1} \
     --log_dir ${SAVE_DIR1} \
     --batch_size 32 \
