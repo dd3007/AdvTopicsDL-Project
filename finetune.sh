@@ -12,7 +12,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} ma
     --log_dir ${SAVE_DIR1} \
     --batch_size 32 \
     --model vit_tiny_patch16 \
-    --finetune "./work_dirs/${FINETUNE_EXP_FOLDER}/${FINETUNE_MODEL_NAME}" \
+    --finetune "tiny_mae_pretrained.pth" \
     --epochs 100 \
     --blr 2.5e-4 \
     --weight_decay 0.05 --mixup 0 --cutmix 0 --reprob 0.25 \
