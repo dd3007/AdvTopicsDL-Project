@@ -13,6 +13,7 @@ import math
 import sys
 import numpy as np
 from sklearn.metrics import accuracy_score
+from torchmetrics.classification import MultilabelAccuracy
 from typing import Iterable, Optional
 
 import torch
@@ -109,6 +110,7 @@ def evaluate(data_loader, model, device):
 
     outputs = []
     targets = []
+    multilabel_accuracy = MultilabelAccuracy(14).to(device)
     for batch in metric_logger.log_every(data_loader, 10, header):
         images = batch[0]
         target = batch[-1]
@@ -124,7 +126,8 @@ def evaluate(data_loader, model, device):
         targets.append(target)
 
         # acc1, acc5 = accuracy(output, target, topk=(1, 5))
-        acc1 = accuracy_score(target.cpu().numpy(), (output > 0.5).cpu().numpy())
+        # acc1 = accuracy_score(target.cpu().numpy(), (output > 0.5).cpu().numpy())
+        acc1 = multilabel_accuracy(output.to(device), target.to(device))
 
         batch_size = images.shape[0]
         metric_logger.update(loss=loss.item())
