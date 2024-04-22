@@ -27,20 +27,20 @@ import timm
 from timm.models.layers import trunc_normal_
 from timm.data.mixup import Mixup
 # from util.mixup_multi_label import Mixup
-from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
+# from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from util.multi_label_loss import SoftTargetBinaryCrossEntropy
 
 import util.lr_decay as lrd
 import util.misc as misc
-from util.datasets import build_dataset, build_dataset_chest_xray
+# from util.datasets import build_dataset, build_dataset_chest_xray
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
-import torch.nn.functional as F
+# import torch.nn.functional as F
 from models import models_vit
 
 from med_engine_finetune import train_one_epoch, evaluate_chestxray
 from util.sampler import RASampler
-from apex.optimizers import FusedAdam
+# from apex.optimizers import FusedAdam
 from libauc import losses
 from torchvision import models
 import timm.optim.optim_factory as optim_factory
@@ -434,8 +434,8 @@ def main(args):
 
     if args.optimizer == 'adamw':
         optimizer = torch.optim.AdamW(param_groups, lr=args.lr)
-    elif args.optimizer == 'fusedlamb':
-        optimizer = FusedAdam(param_groups, lr=args.lr)
+    # elif args.optimizer == 'fusedlamb':
+    #     optimizer = FusedAdam(param_groups, lr=args.lr)
     loss_scaler = NativeScaler()
 
     if args.dataset == 'chestxray':
