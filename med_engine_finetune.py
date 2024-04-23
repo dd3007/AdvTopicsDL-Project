@@ -167,13 +167,6 @@ def evaluate_chestxray(data_loader, model, device, args):
 
     if args.dataset == 'chestxray':
         criterion = torch.nn.BCEWithLogitsLoss()
-    elif args.dataset == 'covidx':
-        criterion = torch.nn.CrossEntropyLoss()
-    elif args.dataset == 'node21':
-        if args.loss_func == 'bce':
-            criterion = torch.nn.BCEWithLogitsLoss()
-        elif args.loss_func is None:
-            criterion = torch.nn.CrossEntropyLoss()
     elif args.dataset == 'chexpert':
         criterion = losses.CrossEntropyLoss()
     else:
@@ -197,10 +190,6 @@ def evaluate_chestxray(data_loader, model, device, args):
             output = model(images)
             loss = criterion(output, target)
 
-
-        if args.dataset == 'covidx':
-            acc1 = accuracy(output, target, topk=(1, ))[0]
-
         outputs.append(output)
         targets.append(target)
         # acc1, acc5 = accuracy(output, target, topk=(1, 5))
@@ -208,9 +197,6 @@ def evaluate_chestxray(data_loader, model, device, args):
 
         metric_logger.update(loss=loss.item())
 
-        if args.dataset == 'covidx':
-            batch_size = images.shape[0]
-            metric_logger.meters['acc1'].update(acc1.item(), n=batch_size)
         # metric_logger.meters['acc5'].update(acc5.item(), n=batch_size)
     # gather the stats from all processes
     # print(len(outputs), outputs[0].shape)
@@ -229,24 +215,7 @@ def evaluate_chestxray(data_loader, model, device, args):
     num_classes = args.nb_classes
 
     outputs = torch.cat(outputs, dim=0).sigmoid().cpu().numpy()
-    if args.dataset == 'covidx' or args.dataset == 'node21':
-
-        targets = torch.cat(targets, dim=0)
-        # assert targets.dim == 1
-        print(targets.shape)
-        if args.dataset == 'covidx':
-            y_pred = copy.deepcopy(outputs).argmax(axis=-1)
-            y_gt = copy.deepcopy(targets.cpu().numpy())
-            y_pred[y_pred == 2] = 1
-            y_gt[y_gt == 2] = 1
-            y_pred[y_pred == 3] = 2
-            y_gt[y_gt == 3] = 2
-            print_metrics_covidx(y_gt, y_pred)
-        if num_classes == 1:
-            targets = targets.cpu().numpy()
-        else:
-            targets = F.one_hot(targets, num_classes=num_classes).cpu().numpy()
-    elif args.dataset == 'chestxray':
+    if args.dataset == 'chestxray':
         targets = torch.cat(targets, dim=0).cpu().numpy()
     elif args.dataset == 'chexpert':
         targets = torch.cat(targets, dim=0).cpu().numpy()
@@ -269,24 +238,5 @@ def evaluate_chestxray(data_loader, model, device, args):
     metric_logger.synchronize_between_processes()
 
     print('Loss {losses.global_avg:.3f}'.format(losses=metric_logger.loss))
-    if args.dataset == 'covidx':
-        print('* Acc@1 {top1.global_avg:.3f}'.format(top1=metric_logger.acc1))
     return {**{k: meter.global_avg for k, meter in metric_logger.meters.items()},
             **{'auc_avg': auc_avg, 'auc_each_class': auc_each_class}}
-
-
-def print_metrics_covidx(y_test, pred):
-    mapping = {
-        'normal': 0,
-        'pneumonia': 1,
-        'COVID-19': 2
-    }
-    matrix = confusion_matrix(y_test, pred)
-    matrix = matrix.astype('float')
-    print(matrix)
-
-    class_acc = [matrix[i,i]/np.sum(matrix[i,:]) if np.sum(matrix[i,:]) else 0 for i in range(len(matrix))]
-    ppvs = [matrix[i,i]/np.sum(matrix[:,i]) if np.sum(matrix[:,i]) else 0 for i in range(len(matrix))]
-
-    print('Sens', ', '.join('{}: {:.3f}'.format(cls.capitalize(), class_acc[i]) for cls, i in mapping.items()))
-    print('PPV', ', '.join('{}: {:.3f}'.format(cls.capitalize(), ppvs[i]) for cls, i in mapping.items()))

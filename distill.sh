@@ -1,14 +1,13 @@
 #!/bin/bash
-EXP_NAME=distill_base_model
+EXP_NAME=distilled_tiny_model
+SAVE_DIR="./work_dirs/${EXP_NAME}_e1/"
 GPUS=4
-SAVE_DIR1="./work_dirs/${EXP_NAME}_e1/"
-MODEL_NAME='latest.pth'
-IMAGENET_DIR='data/imagenet'
 
-OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
+OMP_NUM_THREADS=1 python -m torch.distributed.launch \
+    --nproc_per_node=${GPUS} \
     --use_env main_distill.py \
-    --output_dir ${SAVE_DIR1} \
-    --log_dir ${SAVE_DIR1} \
+    --output_dir ${SAVE_DIR} \
+    --log_dir ${SAVE_DIR} \
     --batch_size 32 \
     --accum_iter 4 \
     --model mae_vit_tiny_patch16_dec512d2b \
@@ -16,7 +15,6 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch --nproc_per_node=${GPUS} \
     --mask_ratio 0.75 \
     --epochs 50 \
     --blr 1.5e-4 --weight_decay 0.05 \
-    --data_path ${IMAGENET_DIR} \
     --teacher_model_path 'vit-b_CXR_0.5M_mae.pth' \
     --student_reconstruction_target 'original_img' \
     --aligned_blks_indices 8 \

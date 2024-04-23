@@ -80,29 +80,29 @@ def get_args_parser():
     parser.add_argument('--layer_decay', type=float, default=0.75,
                         help='layer-wise lr decay from ELECTRA/BEiT')
 
-    parser.add_argument('--min_lr', type=float, default=1e-6, metavar='LR',
-                        help='lower lr bound for cyclic schedulers that hit 0')
+    # parser.add_argument('--min_lr', type=float, default=1e-6, metavar='LR',
+    #                     help='lower lr bound for cyclic schedulers that hit 0')
 
-    parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
-                        help='epochs to warmup LR')
+    # parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
+    #                     help='epochs to warmup LR')
 
     # Augmentation parameters
-    parser.add_argument('--color_jitter', type=float, default=None, metavar='PCT',
-                        help='Color jitter factor (enabled only when not using Auto/RandAug)')
-    parser.add_argument('--aa', type=str, default='rand-m9-mstd0.5-inc1', metavar='NAME',
-                        help='Use AutoAugment policy. "v0" or "original". " + "(default: rand-m9-mstd0.5-inc1)'),
+    # parser.add_argument('--color_jitter', type=float, default=None, metavar='PCT',
+                        # help='Color jitter factor (enabled only when not using Auto/RandAug)')
+    # parser.add_argument('--aa', type=str, default='rand-m9-mstd0.5-inc1', metavar='NAME',
+    #                     help='Use AutoAugment policy. "v0" or "original". " + "(default: rand-m9-mstd0.5-inc1)'),
     parser.add_argument('--smoothing', type=float, default=0.1,
                         help='Label smoothing (default: 0.1)')
 
     # * Random Erase params
-    parser.add_argument('--reprob', type=float, default=0.25, metavar='PCT',
-                        help='Random erase prob (default: 0.25)')
-    parser.add_argument('--remode', type=str, default='pixel',
-                        help='Random erase mode (default: "pixel")')
-    parser.add_argument('--recount', type=int, default=1,
-                        help='Random erase count (default: 1)')
-    parser.add_argument('--resplit', action='store_true', default=False,
-                        help='Do not random erase first (clean) augmentation split')
+    # parser.add_argument('--reprob', type=float, default=0.25, metavar='PCT',
+    #                     help='Random erase prob (default: 0.25)')
+    # parser.add_argument('--remode', type=str, default='pixel',
+    #                     help='Random erase mode (default: "pixel")')
+    # parser.add_argument('--recount', type=int, default=1,
+    #                     help='Random erase count (default: 1)')
+    # parser.add_argument('--resplit', action='store_true', default=False,
+    #                     help='Do not random erase first (clean) augmentation split')
 
     # * Mixup params
     parser.add_argument('--mixup', type=float, default=0,
@@ -123,12 +123,12 @@ def get_args_parser():
                         help='finetune from checkpoint')
     parser.add_argument('--global_pool', action='store_true')
     parser.set_defaults(global_pool=True)
-    parser.add_argument('--cls_token', action='store_false', dest='global_pool',
-                        help='Use class token instead of global pool for classification')
+    # parser.add_argument('--cls_token', action='store_false', dest='global_pool',
+    #                     help='Use class token instead of global pool for classification')
 
     # Dataset parameters
-    parser.add_argument('--data_path', default='/datasets01/imagenet_full_size/061417/', type=str,
-                        help='dataset path')
+    # parser.add_argument('--data_path', default='/datasets01/imagenet_full_size/061417/', type=str,
+    #                     help='dataset path')
     parser.add_argument('--nb_classes', default=1000, type=int,
                         help='number of the classification types')
 
@@ -168,21 +168,21 @@ def get_args_parser():
     parser.add_argument('--fixed_lr', action='store_true', default=False)
     parser.add_argument('--vit_dropout_rate', type=float, default=0,
                         help='Dropout rate for ViT blocks (default: 0.0)')
-    parser.add_argument("--build_timm_transform", action='store_true', default=False)
-    parser.add_argument("--aug_strategy", default='default', type=str, help="strategy for data augmentation")
+    # parser.add_argument("--build_timm_transform", action='store_true', default=False)
+    # parser.add_argument("--aug_strategy", default='default', type=str, help="strategy for data augmentation")
     parser.add_argument("--dataset", default='chestxray', type=str)
 
     parser.add_argument('--repeated-aug', action='store_true', default=False)
 
     parser.add_argument("--optimizer", default='adamw', type=str)
 
-    parser.add_argument('--ThreeAugment', action='store_true')  # 3augment
+    # parser.add_argument('--ThreeAugment', action='store_true')  # 3augment
 
-    parser.add_argument('--src', action='store_true')  # simple random crop
+    # parser.add_argument('--src', action='store_true')  # simple random crop
 
     parser.add_argument('--loss_func', default=None, type=str)
 
-    parser.add_argument("--norm_stats", default=None, type=str)
+    # parser.add_argument("--norm_stats", default=None, type=str)
 
     parser.add_argument("--checkpoint_type", default=None, type=str)
 
@@ -444,13 +444,6 @@ def main(args):
             criterion = SoftTargetBinaryCrossEntropy()
         else:
             criterion = torch.nn.BCEWithLogitsLoss()
-    elif args.dataset == 'covidx':
-        criterion = torch.nn.CrossEntropyLoss()
-    elif args.dataset == 'node21':
-        if args.loss_func == 'bce':
-            criterion = torch.nn.BCEWithLogitsLoss()
-        elif args.loss_func is None:
-            criterion = torch.nn.CrossEntropyLoss()
     elif args.dataset == 'chexpert':
         criterion = losses.CrossEntropyLoss()
     else:
@@ -469,8 +462,6 @@ def main(args):
     if args.eval:
         test_stats = evaluate_chestxray(data_loader_test, model, device, args)
         print(f"Average AUC of the network on the test set images: {test_stats['auc_avg']:.4f}")
-        if args.dataset == 'covidx':
-            print(f"Accuracy of the network on the {len(dataset_test)} test images: {test_stats['acc1']:.1f}%")
         exit(0)
 
     print(f"Start training for {args.epochs} epochs")
@@ -497,11 +488,6 @@ def main(args):
             print(f"Average AUC on the test set images: {test_stats['auc_avg']:.4f}")
             max_auc = max(max_auc, test_stats['auc_avg'])
             print(f'Max Average AUC: {max_auc:.4f}', {max_auc})
-
-            if args.dataset == 'covidx':
-                print(f"Accuracy of the network on the {len(data_loader_test)} test images: {test_stats['acc1']:.1f}%")
-                max_accuracy = max(max_accuracy, test_stats["acc1"])
-                print(f'Max accuracy: {max_accuracy:.2f}%')
 
             if log_writer is not None:
                 log_writer.add_scalar('perf/auc_avg', test_stats['auc_avg'], epoch)
