@@ -12,14 +12,10 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --finetune "tiny_mae_pretrained.pth" \
     --epochs 70 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
-    # --min_lr 1e-5 \
-    # --warmup_epochs 5 \
+    --warmup_epochs 5 \
     --drop_path 0.2 \
     --mixup 0 --cutmix 0 \
-    # --reprob 0 \
     --vit_dropout_rate 0 \
     --num_workers 4 \
     --nb_classes 14 \
     --eval_interval 10 \
-    # --build_timm_transform \
-    # --aa 'rand-m6-mstd0.5-inc1'

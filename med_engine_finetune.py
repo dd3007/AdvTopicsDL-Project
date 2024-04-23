@@ -18,14 +18,11 @@ import torch
 
 from timm.data import Mixup
 from timm.utils import accuracy
-import torch.distributed as dist
 import util.misc as misc
 import util.lr_sched as lr_sched
 from sklearn.metrics._ranking import roc_auc_score
-import torch.nn.functional as F
 from libauc import losses
-from sklearn.metrics import confusion_matrix
-import copy
+
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, loss_scaler, max_norm: float = 0,

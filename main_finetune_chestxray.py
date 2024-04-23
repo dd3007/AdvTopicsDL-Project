@@ -21,26 +21,19 @@ import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.tensorboard import SummaryWriter
 
-import timm
-
-# assert timm.__version__ == "0.3.2" # version check
 from timm.models.layers import trunc_normal_
 from timm.data.mixup import Mixup
-# from util.mixup_multi_label import Mixup
-# from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from util.multi_label_loss import SoftTargetBinaryCrossEntropy
 
 import util.lr_decay as lrd
 import util.misc as misc
-# from util.datasets import build_dataset, build_dataset_chest_xray
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
-# import torch.nn.functional as F
+
 from models import models_vit
 
 from med_engine_finetune import train_one_epoch, evaluate_chestxray
 from util.sampler import RASampler
-# from apex.optimizers import FusedAdam
 from libauc import losses
 from torchvision import models
 import timm.optim.optim_factory as optim_factory
@@ -80,29 +73,13 @@ def get_args_parser():
     parser.add_argument('--layer_decay', type=float, default=0.75,
                         help='layer-wise lr decay from ELECTRA/BEiT')
 
-    # parser.add_argument('--min_lr', type=float, default=1e-6, metavar='LR',
-    #                     help='lower lr bound for cyclic schedulers that hit 0')
 
-    # parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
-    #                     help='epochs to warmup LR')
+    parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
+                        help='epochs to warmup LR')
 
     # Augmentation parameters
-    # parser.add_argument('--color_jitter', type=float, default=None, metavar='PCT',
-                        # help='Color jitter factor (enabled only when not using Auto/RandAug)')
-    # parser.add_argument('--aa', type=str, default='rand-m9-mstd0.5-inc1', metavar='NAME',
-    #                     help='Use AutoAugment policy. "v0" or "original". " + "(default: rand-m9-mstd0.5-inc1)'),
     parser.add_argument('--smoothing', type=float, default=0.1,
                         help='Label smoothing (default: 0.1)')
-
-    # * Random Erase params
-    # parser.add_argument('--reprob', type=float, default=0.25, metavar='PCT',
-    #                     help='Random erase prob (default: 0.25)')
-    # parser.add_argument('--remode', type=str, default='pixel',
-    #                     help='Random erase mode (default: "pixel")')
-    # parser.add_argument('--recount', type=int, default=1,
-    #                     help='Random erase count (default: 1)')
-    # parser.add_argument('--resplit', action='store_true', default=False,
-    #                     help='Do not random erase first (clean) augmentation split')
 
     # * Mixup params
     parser.add_argument('--mixup', type=float, default=0,
@@ -123,12 +100,9 @@ def get_args_parser():
                         help='finetune from checkpoint')
     parser.add_argument('--global_pool', action='store_true')
     parser.set_defaults(global_pool=True)
-    # parser.add_argument('--cls_token', action='store_false', dest='global_pool',
-    #                     help='Use class token instead of global pool for classification')
 
     # Dataset parameters
-    # parser.add_argument('--data_path', default='/datasets01/imagenet_full_size/061417/', type=str,
-    #                     help='dataset path')
+
     parser.add_argument('--nb_classes', default=1000, type=int,
                         help='number of the classification types')
 
@@ -168,21 +142,12 @@ def get_args_parser():
     parser.add_argument('--fixed_lr', action='store_true', default=False)
     parser.add_argument('--vit_dropout_rate', type=float, default=0,
                         help='Dropout rate for ViT blocks (default: 0.0)')
-    # parser.add_argument("--build_timm_transform", action='store_true', default=False)
-    # parser.add_argument("--aug_strategy", default='default', type=str, help="strategy for data augmentation")
     parser.add_argument("--dataset", default='chestxray', type=str)
 
     parser.add_argument('--repeated-aug', action='store_true', default=False)
 
     parser.add_argument("--optimizer", default='adamw', type=str)
-
-    # parser.add_argument('--ThreeAugment', action='store_true')  # 3augment
-
-    # parser.add_argument('--src', action='store_true')  # simple random crop
-
     parser.add_argument('--loss_func', default=None, type=str)
-
-    # parser.add_argument("--norm_stats", default=None, type=str)
 
     parser.add_argument("--checkpoint_type", default=None, type=str)
 

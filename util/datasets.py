@@ -15,9 +15,8 @@ from torchvision import datasets, transforms
 
 from timm.data import create_transform
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-from util.dataloader_med import RetinaDataset, Augmentation, Node21, ChestX_ray14, Covidx, CheXpert
+from util.dataloader_med import RetinaDataset, Augmentation, ChestX_ray14, CheXpert
 from .custom_transforms import GaussianBlur
-import torch
 from .augment import new_data_aug_generator
 
 def build_dataset(is_train, args):

@@ -11,8 +11,6 @@
 
 import math
 import sys
-import numpy as np
-from sklearn.metrics import accuracy_score
 from torchmetrics.classification import MultilabelAccuracy
 from torcheval.metrics.functional import multilabel_accuracy
 from typing import Iterable, Optional
@@ -20,7 +18,6 @@ from typing import Iterable, Optional
 import torch
 
 from timm.data import Mixup
-# from timm.utils import accuracy
 
 import util.misc as misc
 import util.lr_sched as lr_sched
