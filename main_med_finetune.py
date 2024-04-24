@@ -32,7 +32,7 @@ from util.misc import NativeScalerWithGradNormCount as NativeScaler
 
 from models import models_vit
 
-from med_engine_finetune import train_one_epoch, evaluate_chestxray
+from engine_med_finetune import train_one_epoch, evaluate_chestxray
 from util.sampler import RASampler
 from libauc import losses
 from torchvision import models
