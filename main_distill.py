@@ -179,7 +179,7 @@ def main(args):
             heatmap_path = 'nih_bbox_heatmap.png'
 
         if dataset_name == 'chexpert':
-            dataset = CheXpert(csv_path="data/chexpert/train.csv", image_root_path='data/chexpert/', use_upsampling=False,
+            dataset = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/chexpert/', use_upsampling=False,
                                 use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                                 heatmap_path=heatmap_path, pretraining=True)
         elif dataset_name == 'chestxray_nih':
