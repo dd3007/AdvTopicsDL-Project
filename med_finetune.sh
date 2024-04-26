@@ -10,6 +10,8 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --batch_size 32 \
     --model vit_tiny_patch16 \
     --finetune "tiny_mae_pretrained.pth" \
+    --dataset chestxray14 \
+    --nb_classes 14 \
     --epochs 70 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
     --warmup_epochs 5 \
@@ -17,5 +19,4 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --mixup 0 --cutmix 0 \
     --vit_dropout_rate 0 \
     --num_workers 4 \
-    --nb_classes 14 \
-    --eval_interval 10 \
+    --eval_interval 1 \
