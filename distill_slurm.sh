@@ -4,8 +4,8 @@
 #SBATCH -N 2
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=4
-#SBATCH --cpus-per-gpu=8
+#SBATCH --gpus-per-node=1
+#SBATCH --cpus-per-gpu=1
 
 EXP_NAME=distilled_tiny_model
 SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
