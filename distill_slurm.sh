@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash -1
 
 #SBATCH -p gpu
-#SBATCH -N 4
+#SBATCH -N 2
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=1
@@ -13,6 +13,7 @@ srun python 'which torchrun' \
     --nnodes $SLURM_JOB_NUM_NODES \
     --nproc_per_node $SLURM_GPUS_PER_NODE \
     --rdzv_id $SLURM_JOB_ID \
+    --rdzv_backend c10d \
     --rdzv_endpoint $master_node:29500 \
     main_distill.py \
     --output_dir ${SAVE_DIR} \
