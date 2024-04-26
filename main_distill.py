@@ -5,15 +5,14 @@ import numpy as np
 import os
 import time
 from pathlib import Path
-import torch
 
-local_rank = int(os.environ.get("LOCAL_RANK", 0))
-global_rank = int(os.environ.get("RANK", 0))
+# local_rank = int(os.environ.get("LOCAL_RANK", 0))
+# # global_rank = int(os.environ.get("RANK", 0))
 world_size = int(os.environ.get("WORLD_SIZE", 1))
 
 # NCCL is the protocol that should be used to communicate between GPUs
-torch.distributed.init_process_group("nccl")
-torch.cuda.set_device(local_rank)
+# torch.distributed.init_process_group("nccl")
+# torch.cuda.set_device(local_rank)
 
 import torch
 import torch.backends.cudnn as cudnn
