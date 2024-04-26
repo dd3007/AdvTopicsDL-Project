@@ -7,7 +7,7 @@
 #SBATCH --gpus-per-node=1
 
 EXP_NAME=distilled_tiny_model
-SAVE_DIR=".//mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
+SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
 
 srun python -m 'which torchrun' \
     --nnodes $SLURM_JOB_NUM_NODES \
