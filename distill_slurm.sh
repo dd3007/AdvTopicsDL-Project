@@ -9,6 +9,8 @@
 EXP_NAME=distilled_tiny_model
 SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
 
+master_node=$SLURMD_NODENAME
+
 srun python `which torchrun` \
     --nnodes $SLURM_JOB_NUM_NODES \
     --nproc_per_node $SLURM_GPUS_PER_NODE \
