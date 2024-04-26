@@ -1,4 +1,4 @@
-#!/bin/bash -1
+#!/bin/bash -l
 
 #SBATCH -p gpu
 #SBATCH -N 2
