@@ -183,7 +183,7 @@ def main(args):
                                 use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                                 heatmap_path=heatmap_path, pretraining=True)
         elif dataset_name == 'chestxray_nih':
-            dataset = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray14/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
+            dataset = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
                                     heatmap_path=heatmap_path, pretraining=True)
         else:
             raise NotImplementedError
