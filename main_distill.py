@@ -5,6 +5,7 @@ import numpy as np
 import os
 import time
 from pathlib import Path
+import torch
 
 local_rank = int(os.environ.get("LOCAL_RANK", 0))
 global_rank = int(os.environ.get("RANK", 0))
