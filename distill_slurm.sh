@@ -33,4 +33,4 @@ srun python `which torchrun` \
     --aligned_blks_indices 8 \
     --teacher_aligned_blks_indices 8 \
     --embedding_distillation_func L1 \
-    --aligned_feature_projection_dim 192 768
+    --aligned_feature_projection_dim 384 768
