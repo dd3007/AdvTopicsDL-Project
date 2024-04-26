@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -p gpu
-#SBATCH -N 2
+#SBATCH -N 4
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=4
