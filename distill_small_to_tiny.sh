@@ -13,7 +13,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --model mae_vit_tiny_patch16_dec512d2b \
     --model_teacher mae_vit_small_patch16_dec512d8b \
     --mask_ratio 0.75 \
-    --epochs 50 \
+    --epochs 100 \
     --blr 1.5e-4 --weight_decay 0.05 \
     --teacher_model_path 'vit-s_CXR_0.3M_mae.pth' \
     --student_reconstruction_target 'original_img' \
