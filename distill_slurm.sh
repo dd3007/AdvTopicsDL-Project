@@ -18,7 +18,7 @@ srun python `which torchrun` \
     --rdzv_id $SLURM_JOB_ID \
     --rdzv_backend c10d \
     --rdzv_endpoint $master_node:29500 \
-    main_distill.py \
+    /mnt/home/mpaez/AdvTopicsDL-Project/main_distill.py \
     --output_dir ${SAVE_DIR} \
     --log_dir ${SAVE_DIR} \
     --batch_size 32 \
