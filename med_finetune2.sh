@@ -7,7 +7,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --use_env main_med_finetune.py \
     --output_dir ${SAVE_DIR} \
     --log_dir ${SAVE_DIR} \
-    --batch_size 32 \
+    --batch_size 100 \
     --model vit_tiny_patch16 \
     --finetune "tiny_mae_pretrained.pth" \
     --dataset chestxray14 \
