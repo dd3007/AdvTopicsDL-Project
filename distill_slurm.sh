@@ -12,7 +12,7 @@ SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
 srun python -m 'which torchrun' \
     --nnodes $SLURM_JOB_NUM_NODES \
     --nproc_per_node $SLURM_GPUS_PER_NODE \
-    --rdzv_id $SLURM_JOB_ID 
+    --rdzv_id $SLURM_JOB_ID \
     --rdzv_endpoint $master_node:29500 \
     main_distill.py \
     --output_dir ${SAVE_DIR} \
