@@ -76,6 +76,8 @@ def get_args_parser():
     parser.add_argument('--layer_decay', type=float, default=0.75,
                         help='layer-wise lr decay from ELECTRA/BEiT')
     parser.add_argument('--fixed_lr', action='store_true', default=False)
+    parser.add_argument('--min_lr', type=float, default=1e-6, metavar='LR',
+                    help='lower lr bound for cyclic schedulers that hit 0')
     parser.add_argument("--optimizer", default='adamw', type=str)
     parser.add_argument('--loss_func', default=None, type=str)
 
