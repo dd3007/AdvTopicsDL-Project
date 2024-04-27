@@ -60,6 +60,9 @@ def get_args_parser():
     parser.add_argument('--drop_path', type=float, default=0.1, metavar='PCT',
                         help='Drop path rate (default: 0.1)')
 
+    parser.add_argument('--vit_dropout_rate', type=float, default=0,
+                        help='Dropout rate for ViT blocks (default: 0.0)')
+
     # Optimizer parameters
     parser.add_argument('--clip_grad', type=float, default=None, metavar='NORM',
                         help='Clip gradient norm (default: None, no clipping)')
@@ -72,7 +75,9 @@ def get_args_parser():
                         help='base learning rate: absolute_lr = base_lr * total_batch_size / 256')
     parser.add_argument('--layer_decay', type=float, default=0.75,
                         help='layer-wise lr decay from ELECTRA/BEiT')
-
+    parser.add_argument('--fixed_lr', action='store_true', default=False)
+    parser.add_argument("--optimizer", default='adamw', type=str)
+    parser.add_argument('--loss_func', default=None, type=str)
 
     parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
                         help='epochs to warmup LR')
@@ -80,6 +85,7 @@ def get_args_parser():
     # Augmentation parameters
     parser.add_argument('--smoothing', type=float, default=0.1,
                         help='Label smoothing (default: 0.1)')
+    parser.add_argument('--repeated-aug', action='store_true', default=False)
 
     # * Mixup params
     parser.add_argument('--mixup', type=float, default=0,
@@ -102,7 +108,7 @@ def get_args_parser():
     parser.set_defaults(global_pool=True)
 
     # Dataset parameters
-
+    parser.add_argument("--dataset", default='chestxray14', type=str)
     parser.add_argument('--nb_classes', default=1000, type=int,
                         help='number of the classification types')
 
@@ -115,11 +121,13 @@ def get_args_parser():
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--resume', default='',
                         help='resume from checkpoint')
+    parser.add_argument("--checkpoint_type", default=None, type=str)
 
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
     parser.add_argument('--eval', action='store_true',
                         help='Perform evaluation only')
+    parser.add_argument('--eval_interval', default=10, type=int)
     parser.add_argument('--dist_eval', action='store_true', default=False,
                         help='Enabling distributed evaluation (recommended during training for faster monitor')
     parser.add_argument('--num_workers', default=10, type=int)
@@ -135,21 +143,6 @@ def get_args_parser():
     parser.add_argument('--dist_on_itp', action='store_true')
     parser.add_argument('--dist_url', default='env://',
                         help='url used to set up distributed training')
-    parser.add_argument("--train_list", default=None, type=str, help="file for train list")
-    parser.add_argument("--val_list", default=None, type=str, help="file for val list")
-    parser.add_argument("--test_list", default=None, type=str, help="file for test list")
-    parser.add_argument('--eval_interval', default=10, type=int)
-    parser.add_argument('--fixed_lr', action='store_true', default=False)
-    parser.add_argument('--vit_dropout_rate', type=float, default=0,
-                        help='Dropout rate for ViT blocks (default: 0.0)')
-    parser.add_argument("--dataset", default='chestxray14', type=str)
-
-    parser.add_argument('--repeated-aug', action='store_true', default=False)
-
-    parser.add_argument("--optimizer", default='adamw', type=str)
-    parser.add_argument('--loss_func', default=None, type=str)
-
-    parser.add_argument("--checkpoint_type", default=None, type=str)
 
     return parser
 
@@ -416,7 +409,6 @@ def main(args):
 
     print(f"Start training for {args.epochs} epochs")
     start_time = time.time()
-    max_accuracy = 0.0
     max_auc = 0.0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
