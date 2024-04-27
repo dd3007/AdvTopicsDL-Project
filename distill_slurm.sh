@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #SBATCH -p gpu
-#SBATCH -N 3
+#SBATCH -N 4
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-gpu=8
 
-EXP_NAME=distilled_small_model
+EXP_NAME=distilled_base_tiny_model
 SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/distill/${EXP_NAME}_e1/"
 
 master_node=$SLURMD_NODENAME
@@ -23,7 +23,7 @@ srun python `which torchrun` \
     --log_dir ${SAVE_DIR} \
     --batch_size 32 \
     --accum_iter 4 \
-    --model mae_vit_small_patch16_dec512d2b \
+    --model mae_vit_tiny_patch16_dec512d2b \
     --model_teacher mae_vit_base_patch16_dec512d8b \
     --mask_ratio 0.75 \
     --epochs 50 \
@@ -33,4 +33,4 @@ srun python `which torchrun` \
     --aligned_blks_indices 8 \
     --teacher_aligned_blks_indices 8 \
     --embedding_distillation_func L1 \
-    --aligned_feature_projection_dim 384 768
+    --aligned_feature_projection_dim 192 768
