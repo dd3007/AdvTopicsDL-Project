@@ -30,7 +30,7 @@ import util.misc as misc
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 
-from models import models_vit
+from models import models_mae_distill
 
 from engine_med_finetune import train_one_epoch, evaluate_medical
 from util.sampler import RASampler
