@@ -42,9 +42,6 @@ from collections import OrderedDict
 from util.dataloader_medical import CheXpert, ChestX_ray14
 import torchvision.transforms as transforms
 
-# NCCL is the protocol that should be used to communicate between GPUs
-# torch.distributed.init_process_group("nccl")
-
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE fine-tuning for image classification', add_help=False)
     parser.add_argument('--batch_size', default=64, type=int,
@@ -63,6 +60,9 @@ def get_args_parser():
     parser.add_argument('--drop_path', type=float, default=0.1, metavar='PCT',
                         help='Drop path rate (default: 0.1)')
 
+    parser.add_argument('--vit_dropout_rate', type=float, default=0,
+                        help='Dropout rate for ViT blocks (default: 0.0)')
+
     # Optimizer parameters
     parser.add_argument('--clip_grad', type=float, default=None, metavar='NORM',
                         help='Clip gradient norm (default: None, no clipping)')
@@ -75,7 +75,11 @@ def get_args_parser():
                         help='base learning rate: absolute_lr = base_lr * total_batch_size / 256')
     parser.add_argument('--layer_decay', type=float, default=0.75,
                         help='layer-wise lr decay from ELECTRA/BEiT')
-
+    parser.add_argument('--fixed_lr', action='store_true', default=False)
+    parser.add_argument('--min_lr', type=float, default=1e-6, metavar='LR',
+                    help='lower lr bound for cyclic schedulers that hit 0')
+    parser.add_argument("--optimizer", default='adamw', type=str)
+    parser.add_argument('--loss_func', default=None, type=str)
 
     parser.add_argument('--warmup_epochs', type=int, default=5, metavar='N',
                         help='epochs to warmup LR')
@@ -83,6 +87,7 @@ def get_args_parser():
     # Augmentation parameters
     parser.add_argument('--smoothing', type=float, default=0.1,
                         help='Label smoothing (default: 0.1)')
+    parser.add_argument('--repeated-aug', action='store_true', default=False)
 
     # * Mixup params
     parser.add_argument('--mixup', type=float, default=0,
@@ -105,7 +110,7 @@ def get_args_parser():
     parser.set_defaults(global_pool=True)
 
     # Dataset parameters
-
+    parser.add_argument("--dataset", default='chestxray14', type=str)
     parser.add_argument('--nb_classes', default=1000, type=int,
                         help='number of the classification types')
 
@@ -118,11 +123,13 @@ def get_args_parser():
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--resume', default='',
                         help='resume from checkpoint')
+    parser.add_argument("--checkpoint_type", default=None, type=str)
 
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
     parser.add_argument('--eval', action='store_true',
                         help='Perform evaluation only')
+    parser.add_argument('--eval_interval', default=10, type=int)
     parser.add_argument('--dist_eval', action='store_true', default=False,
                         help='Enabling distributed evaluation (recommended during training for faster monitor')
     parser.add_argument('--num_workers', default=10, type=int)
@@ -138,21 +145,6 @@ def get_args_parser():
     parser.add_argument('--dist_on_itp', action='store_true')
     parser.add_argument('--dist_url', default='env://',
                         help='url used to set up distributed training')
-    parser.add_argument("--train_list", default=None, type=str, help="file for train list")
-    parser.add_argument("--val_list", default=None, type=str, help="file for val list")
-    parser.add_argument("--test_list", default=None, type=str, help="file for test list")
-    parser.add_argument('--eval_interval', default=10, type=int)
-    parser.add_argument('--fixed_lr', action='store_true', default=False)
-    parser.add_argument('--vit_dropout_rate', type=float, default=0,
-                        help='Dropout rate for ViT blocks (default: 0.0)')
-    parser.add_argument("--dataset", default='chestxray', type=str)
-
-    parser.add_argument('--repeated-aug', action='store_true', default=False)
-
-    parser.add_argument("--optimizer", default='adamw', type=str)
-    parser.add_argument('--loss_func', default=None, type=str)
-
-    parser.add_argument("--checkpoint_type", default=None, type=str)
 
     return parser
 
@@ -172,22 +164,15 @@ def main(args):
 
     cudnn.benchmark = True
 
-    # dataset_train = build_dataset_chest_xray(split='train', args=args)
-    # dataset_val = build_dataset_chest_xray(split='val', args=args)
-    # dataset_test = build_dataset_chest_xray(split='test', args=args)
-
-    # dataset_name = 'chexpert'
-    dataset_name = 'chestxray_nih'
-
-    mean_dict = { 'chexpert': [0.485, 0.456, 0.406], 'chestxray_nih': [0.5056, 0.5056, 0.5056] }
-    std_dict = { 'chexpert': [0.229, 0.224, 0.225], 'chestxray_nih': [0.252, 0.252, 0.252] }
+    mean_dict = { 'chexpert': [0.485, 0.456, 0.406], 'chestxray14': [0.5056, 0.5056, 0.5056] }
+    std_dict = { 'chexpert': [0.229, 0.224, 0.225], 'chestxray14': [0.252, 0.252, 0.252] }
 
     # args variables not used here
     random_resize_range = None
     mask_strategy = None
 
-    dataset_mean = mean_dict[dataset_name]
-    dataset_std = std_dict[dataset_name]
+    dataset_mean = mean_dict[args.dataset]
+    dataset_std = std_dict[args.dataset]
         
     if random_resize_range:
         if mask_strategy in ['heatmap_weighted', 'heatmap_inverse_weighted']:
@@ -201,7 +186,7 @@ def main(args):
             print(resize_ratio_min, resize_ratio_max)
             transform_train = transforms.Compose([
                 transforms.RandomResizedCrop(args.input_size, scale=(resize_ratio_min, resize_ratio_max),
-                                                interpolation=3),  # 3 is bicubic
+                                                interpolation=3), # 3 is bicubic
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(dataset_mean, dataset_std)])
@@ -218,17 +203,18 @@ def main(args):
     if mask_strategy in ['heatmap_weighted', 'heatmap_inverse_weighted']:
         heatmap_path = 'nih_bbox_heatmap.png'
 
-    if dataset_name == 'chexpert':
-        dataset_train = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small', use_upsampling=False,
+    if args.dataset == 'chexpert':
+        dataset_train = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/', use_upsampling=False,
                             use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                             heatmap_path=heatmap_path, pretraining=False)
-        dataset_val = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/valid.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small', use_upsampling=False,
+        dataset_val = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/valid.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/', use_upsampling=False,
                             use_frontal=True, mode='valid', class_index=-1, transform=transform_train,
                             heatmap_path=heatmap_path, pretraining=False)
-        #dataset_test = CheXpert(csv_path="data/chexpert/test.csv", image_root_path='data/chexpert/', use_upsampling=False,
-        #            use_frontal=True, mode='test', class_index=-1, transform=transform_train,
-        #            heatmap_path=heatmap_path, pretraining=False)
-    elif dataset_name == 'chestxray_nih':
+        # CheXpert doesn't have a test set, so we use the validation set for testing
+        dataset_test = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/valid.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small/', use_upsampling=False,
+                            use_frontal=True, mode='valid', class_index=-1, transform=transform_train,
+                            heatmap_path=heatmap_path, pretraining=False)
+    elif args.dataset == 'chestxray14':
         dataset_train = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
                                 heatmap_path=heatmap_path, pretraining=False)
         dataset_val = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/val_official.txt', augment=transform_train, num_class=14,
@@ -242,29 +228,23 @@ def main(args):
         num_tasks = misc.get_world_size()
         global_rank = misc.get_rank()
         if args.repeated_aug:
-            sampler_train = RASampler(
-                dataset_train, num_replicas=num_tasks, rank=global_rank, shuffle=True
-            )
+            sampler_train = RASampler(dataset_train, num_replicas=num_tasks, rank=global_rank, shuffle=True)
         else:
-            sampler_train = torch.utils.data.DistributedSampler(
-                dataset_train, num_replicas=num_tasks, rank=global_rank, shuffle=True
-            )
+            sampler_train = torch.utils.data.DistributedSampler(dataset_train, num_replicas=num_tasks, rank=global_rank, shuffle=True)
         print("Sampler_train = %s" % str(sampler_train))
         if args.dist_eval:
             if len(dataset_test) % num_tasks != 0:
                 print('Warning: Enabling distributed evaluation with an eval dataset not divisible by process number. '
                       'This will slightly alter validation results as extra duplicate entries are added to achieve '
                       'equal num of samples per-process.')
-            # sampler_val = torch.utils.data.DistributedSampler(
-            #     dataset_val, num_replicas=num_tasks, rank=global_rank, shuffle=True)  # shuffle=True to reduce monitor bias
-            sampler_test = torch.utils.data.DistributedSampler(
-                dataset_test, num_replicas=num_tasks, rank=global_rank, shuffle=True)
+            sampler_val = torch.utils.data.DistributedSampler(dataset_val, num_replicas=num_tasks, rank=global_rank, shuffle=True) # shuffle=True to reduce monitor bias
+            sampler_test = torch.utils.data.DistributedSampler(dataset_test, num_replicas=num_tasks, rank=global_rank, shuffle=True)
         else:
-            # sampler_val = torch.utils.data.SequentialSampler(dataset_val)
+            sampler_val = torch.utils.data.SequentialSampler(dataset_val)
             sampler_test = torch.utils.data.SequentialSampler(dataset_test)
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
-        # sampler_val = torch.utils.data.SequentialSampler(dataset_val)
+        sampler_val = torch.utils.data.SequentialSampler(dataset_val)
         sampler_test = torch.utils.data.SequentialSampler(dataset_test)
 
     if global_rank == 0 and args.log_dir is not None and not args.eval:
@@ -279,6 +259,14 @@ def main(args):
         num_workers=args.num_workers,
         pin_memory=args.pin_mem,
         drop_last=True,
+    )
+
+    data_loader_val = torch.utils.data.DataLoader(
+        dataset_val, sampler=sampler_val,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        pin_memory=args.pin_mem,
+        drop_last=False
     )
 
     data_loader_test = torch.utils.data.DataLoader(
@@ -297,6 +285,7 @@ def main(args):
             mixup_alpha=args.mixup, cutmix_alpha=args.cutmix, cutmix_minmax=args.cutmix_minmax,
             prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
+
     if 'vit' in args.model:
         model = models_vit.__dict__[args.model](
             img_size=args.input_size,
@@ -305,12 +294,10 @@ def main(args):
             drop_path_rate=args.drop_path,
             global_pool=args.global_pool,
         )
-
     elif 'densenet' in args.model or 'resnet' in args.model:
         model = models.__dict__[args.model](num_classes=args.nb_classes)
     else:
         raise NotImplementedError
-
 
     if args.finetune and not args.eval:
         if 'vit' in args.model:
@@ -329,8 +316,6 @@ def main(args):
                 else:
                     print(f"{k} not found in Init Model")
 
-
-
             # interpolate position embedding
             interpolate_pos_embed(model, checkpoint_model)
 
@@ -338,12 +323,10 @@ def main(args):
             msg = model.load_state_dict(checkpoint_model, strict=False)
             print(msg)
 
-
             # if args.global_pool:
             #     assert set(msg.missing_keys) == {'head.weight', 'head.bias', 'fc_norm.weight', 'fc_norm.bias'}
             # else:
             #     assert set(msg.missing_keys) == {'head.weight', 'head.bias'}
-
             # manually initialize fc layer
             trunc_normal_(model.head.weight, std=2e-5)
         elif 'densenet' in args.model or 'resnet' in args.model:
@@ -357,9 +340,7 @@ def main(args):
                 checkpoint_model = checkpoint
             if args.checkpoint_type == 'smp_encoder':
                 state_dict = checkpoint_model
-
                 new_state_dict = OrderedDict()
-
                 for key, value in state_dict.items():
                     if 'model.encoder.' in key:
                         new_key = key.replace('model.encoder.', '')
@@ -378,7 +359,7 @@ def main(args):
 
     eff_batch_size = args.batch_size * args.accum_iter * misc.get_world_size()
     
-    if args.lr is None:  # only base_lr is specified
+    if args.lr is None: # only base_lr is specified
         args.lr = args.blr * eff_batch_size / 256
 
     print("base lr: %.2e" % (args.lr * 256 / eff_batch_size))
@@ -406,7 +387,7 @@ def main(args):
     #     optimizer = FusedAdam(param_groups, lr=args.lr)
     loss_scaler = NativeScaler()
 
-    if args.dataset == 'chestxray':
+    if args.dataset == 'chestxray14':
         if mixup_fn is not None:
             # smoothing is handled with mixup label transform
             criterion = SoftTargetBinaryCrossEntropy()
@@ -419,10 +400,6 @@ def main(args):
     # elif args.smoothing > 0.:
     #     criterion = LabelSmoothingCrossEntropy(smoothing=args.smoothing)
 
-    # if
-    # criterion = torch.nn.BCEWithLogitsLoss()
-
-
     print("criterion = %s" % str(criterion))
 
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)
@@ -434,7 +411,6 @@ def main(args):
 
     print(f"Start training for {args.epochs} epochs")
     start_time = time.time()
-    max_accuracy = 0.0
     max_auc = 0.0
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
@@ -452,7 +428,7 @@ def main(args):
                 args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
                 loss_scaler=loss_scaler, epoch=epoch)
 
-            test_stats = evaluate_medical(data_loader_test, model, device, args)
+            test_stats = evaluate_medical(data_loader_val, model, device, args)
             print(f"Average AUC on the test set images: {test_stats['auc_avg']:.4f}")
             max_auc = max(max_auc, test_stats['auc_avg'])
             print(f'Max Average AUC: {max_auc:.4f}', {max_auc})
@@ -475,7 +451,6 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
-
 
 if __name__ == '__main__':
     args = get_args_parser()
