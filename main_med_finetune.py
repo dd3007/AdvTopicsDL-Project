@@ -297,7 +297,7 @@ def main(args):
             mixup_alpha=args.mixup, cutmix_alpha=args.cutmix, cutmix_minmax=args.cutmix_minmax,
             prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
-    if 'vit' in args.models:
+    if 'vit' in args.model:
         model = models_vit.__dict__[args.model](
             img_size=args.input_size,
             num_classes=args.nb_classes,
@@ -428,7 +428,7 @@ def main(args):
     misc.load_model(args=args, model_without_ddp=model_without_ddp, optimizer=optimizer, loss_scaler=loss_scaler)
 
     if args.eval:
-        test_stats = evaluate_chestxray(data_loader_test, model, device, args)
+        test_stats = evaluate_medical(data_loader_test, model, device, args)
         print(f"Average AUC of the network on the test set images: {test_stats['auc_avg']:.4f}")
         exit(0)
 
