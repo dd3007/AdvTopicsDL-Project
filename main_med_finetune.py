@@ -30,7 +30,7 @@ import util.misc as misc
 from util.pos_embed import interpolate_pos_embed
 from util.misc import NativeScalerWithGradNormCount as NativeScaler
 
-from models import models_mae_distill
+from models import models_vit
 
 from engine_med_finetune import train_one_epoch, evaluate_medical
 from util.sampler import RASampler
@@ -298,7 +298,7 @@ def main(args):
             prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
     if 'vit' in args.models:
-        model = models_mae_distill.__dict__[args.model](
+        model = models_vit.__dict__[args.model](
             img_size=args.input_size,
             num_classes=args.nb_classes,
             drop_rate=args.vit_dropout_rate,

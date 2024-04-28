@@ -22,7 +22,7 @@ srun python `which torchrun` \
     --output_dir ${SAVE_DIR} \
     --log_dir ${SAVE_DIR} \
     --batch_size 32 \
-    --model mae_vit_small_patch16_dec512d2b \
+    --model vit_small_patch16_dec512d2b \
     --finetune "small_mae_pretrained.pth" \
     --epochs 100 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
