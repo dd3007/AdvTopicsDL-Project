@@ -23,10 +23,6 @@ import util.lr_sched as lr_sched
 from sklearn.metrics._ranking import roc_auc_score
 from libauc import losses
 
-from torchmetrics.classification import MultilabelAccuracy
-from torcheval.metrics.functional import multilabel_accuracy
-from sklearn.metrics import accuracy_score
-
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, loss_scaler, max_norm: float = 0,
@@ -178,13 +174,6 @@ def evaluate_medical(data_loader, model, device, args):
     outputs = []
     targets = []
     
-    multilabel_accuracy_fn = MultilabelAccuracy(num_labels=args.nb_classes, threshold=0.0).to(device)
-
-    our_accuracy = 0
-    sklearn_accuracy = 0
-    torchmetrics_accuracy = 0
-    torcheval_accuracy = 0
-    
     for batch in metric_logger.log_every(data_loader, 10, header):
         images = batch[0]
         target = batch[-1]
@@ -199,24 +188,7 @@ def evaluate_medical(data_loader, model, device, args):
         outputs.append(output)
         targets.append(target)
 
-        batch_size = images.shape[0]
-
-        our_accuracy += accuracy(output, target).item()
-        sklearn_accuracy += accuracy_score(target.cpu().numpy(), (output > 0.0).cpu().numpy())
-        torchmetrics_accuracy += multilabel_accuracy_fn(output.to(device), target.to(device)).item()
-        torcheval_accuracy += multilabel_accuracy(output.to(device), target.to(device), threshold=0.0).item()
-
-        metric_logger.meters['our_accuracy'].update(our_accuracy, n=batch_size)
-        metric_logger.meters['sklearn_accuracy'].update(sklearn_accuracy, n=batch_size)
-        metric_logger.meters['torchmetrics_accuracy'].update(torchmetrics_accuracy, n=batch_size)
-        metric_logger.meters['torcheval_accuracy'].update(torcheval_accuracy, n=batch_size)
-
         metric_logger.update(loss=loss.item())
-
-    print('our_accuracy = ', metric_logger.our_accuracy.global_avg)
-    print('sklearn_accuracy = ', metric_logger.sklearn_accuracy.global_avg)
-    print('torchmetrics_accuracy = ', metric_logger.torchmetrics_accuracy.global_avg)
-    print('torcheval_accuracy = ', metric_logger.torcheval_accuracy.global_avg)
 
     num_classes = args.nb_classes
 
@@ -224,8 +196,6 @@ def evaluate_medical(data_loader, model, device, args):
     targets = torch.cat(targets, dim=0).cpu().numpy()
 
     print(targets.shape, outputs.shape)
-    # np.save(args.log_dir + '/' + 'y_gt.npy', targets)
-    # np.save(args.log_dir + '/' + 'y_pred.npy', outputs)
     auc_each_class = computeAUROC(targets, outputs, num_classes)
     auc_each_class_array = np.array(auc_each_class)
     missing_classes_index = np.where(auc_each_class_array == 0)[0]
