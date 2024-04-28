@@ -43,7 +43,7 @@ from util.dataloader_medical import CheXpert, ChestX_ray14
 import torchvision.transforms as transforms
 
 # NCCL is the protocol that should be used to communicate between GPUs
-torch.distributed.init_process_group("nccl")
+# torch.distributed.init_process_group("nccl")
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE fine-tuning for image classification', add_help=False)
@@ -297,8 +297,8 @@ def main(args):
             mixup_alpha=args.mixup, cutmix_alpha=args.cutmix, cutmix_minmax=args.cutmix_minmax,
             prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
-    if 'vit' in args.model:
-        model = models_vit.__dict__[args.model](
+    if 'vit' in args.models:
+        model = models_mae_distill.__dict__[args.model](
             img_size=args.input_size,
             num_classes=args.nb_classes,
             drop_rate=args.vit_dropout_rate,
