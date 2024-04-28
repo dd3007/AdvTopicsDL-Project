@@ -1,11 +1,11 @@
 #!/bin/bash 
 
 #SBATCH -p gpu
-#SBATCH -N 6
+#SBATCH -N 1
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-node=4
-#SBATCH --cpus-per-gpu=8
+#SBATCH --gpus-per-node=1
+#SBATCH --cpus-per-gpu=1
 
 EXP_NAME=finetuned_small_model
 SAVE_DIR="/mnt/home/mpaez/ceph/adp_model/finetune/${EXP_NAME}_e1/"
