@@ -50,6 +50,7 @@ srun python `which torchrun` \
 #SBATCH -C a100,ib
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=1
+#SBATCH --cpus-per-gpu=8
 
 master_node=$SLURMD_NODENAME
 
