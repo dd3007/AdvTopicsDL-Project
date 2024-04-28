@@ -32,7 +32,7 @@ from util.misc import NativeScalerWithGradNormCount as NativeScaler
 
 from models import models_vit
 
-from engine_med_finetune import train_one_epoch, evaluate_chestxray
+from engine_med_finetune import train_one_epoch, evaluate_medical
 from util.sampler import RASampler
 from libauc import losses
 from torchvision import models
@@ -42,13 +42,8 @@ from collections import OrderedDict
 from util.dataloader_medical import CheXpert, ChestX_ray14
 import torchvision.transforms as transforms
 
-# local_rank = int(os.environ.get("LOCAL_RANK", 0))
-# global_rank = int(os.environ.get("RANK", 0))
-# world_size = int(os.environ.get("WORLD_SIZE", 1))
-
 # NCCL is the protocol that should be used to communicate between GPUs
 torch.distributed.init_process_group("nccl")
-# torch.cuda.set_device(local_rank)
 
 def get_args_parser():
     parser = argparse.ArgumentParser('MAE fine-tuning for image classification', add_help=False)
