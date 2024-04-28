@@ -224,21 +224,21 @@ def main(args):
         heatmap_path = 'nih_bbox_heatmap.png'
 
     if dataset_name == 'chexpert':
-        dataset_train = CheXpert(csv_path="data/chexpert/train.csv", image_root_path='data/chexpert/', use_upsampling=False,
+        dataset_train = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/train.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small', use_upsampling=False,
                             use_frontal=True, mode='train', class_index=-1, transform=transform_train,
                             heatmap_path=heatmap_path, pretraining=False)
-        dataset_val = CheXpert(csv_path="data/chexpert/valid.csv", image_root_path='data/chexpert/', use_upsampling=False,
+        dataset_val = CheXpert(csv_path="/mnt/home/mpaez/ceph/CheXpert-v1.0-small/valid.csv", image_root_path='/mnt/home/mpaez/ceph/CheXpert-v1.0-small', use_upsampling=False,
                             use_frontal=True, mode='valid', class_index=-1, transform=transform_train,
                             heatmap_path=heatmap_path, pretraining=False)
-        dataset_test = CheXpert(csv_path="data/chexpert/test.csv", image_root_path='data/chexpert/', use_upsampling=False,
-                    use_frontal=True, mode='test', class_index=-1, transform=transform_train,
-                    heatmap_path=heatmap_path, pretraining=False)
+        #dataset_test = CheXpert(csv_path="data/chexpert/test.csv", image_root_path='data/chexpert/', use_upsampling=False,
+        #            use_frontal=True, mode='test', class_index=-1, transform=transform_train,
+        #            heatmap_path=heatmap_path, pretraining=False)
     elif dataset_name == 'chestxray_nih':
-        dataset_train = ChestX_ray14('data/chestxray14/images', 'data/chestxray14/train_official.txt', augment=transform_train, num_class=14,
+        dataset_train = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/train_official.txt', augment=transform_train, num_class=14,
                                 heatmap_path=heatmap_path, pretraining=False)
-        dataset_val = ChestX_ray14('data/chestxray14/images', 'data/chestxray14/val_official.txt', augment=transform_train, num_class=14,
+        dataset_val = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/val_official.txt', augment=transform_train, num_class=14,
                                 heatmap_path=heatmap_path, pretraining=False)
-        dataset_test = ChestX_ray14('data/chestxray14/images', 'data/chestxray14/test_official.txt', augment=transform_train, num_class=14,
+        dataset_test = ChestX_ray14('/mnt/home/mpaez/ceph/chestxray/images', '/mnt/home/mpaez/ceph/chestxray/test_official.txt', augment=transform_train, num_class=14,
                                 heatmap_path=heatmap_path, pretraining=False)
     else:
         raise NotImplementedError
