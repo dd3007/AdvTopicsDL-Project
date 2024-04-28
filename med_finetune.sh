@@ -9,7 +9,7 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --log_dir ${SAVE_DIR} \
     --batch_size 32 \
     --model vit_tiny_patch16 \
-    --finetune "distill_base_tiny_100epochs_4gpus.pth" \
+    --finetune "checkpoint-small-tiny.pth" \
     --dataset chestxray14 \
     --nb_classes 14 \
     --epochs 100 \
