@@ -3,7 +3,8 @@ from functools import partial
 import torch
 import torch.nn as nn
 
-from timm.models.vision_transformer import PatchEmbed, Block, Mlp
+from timm.models.vision_transformer import PatchEmbed, Mlp
+from attention import Block 
 
 from util.pos_embed import get_2d_sincos_pos_embed
 
@@ -553,6 +554,8 @@ def mae_vit_huge_patch14_dec512d8b(**kwargs):
 
 
 # set recommended archs
+mae_vit_tiny_patch16 = mae_vit_tiny_patch16_dec512d8b # decoder: 512 dim, 8 blocks 
+mae_vit_small_patch16 = mae_vit_small_patch16_dec512d8b # decoder: 512 dim, 8 blocks
 mae_vit_base_patch16 = mae_vit_base_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_large_patch16 = mae_vit_large_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
 mae_vit_huge_patch14 = mae_vit_huge_patch14_dec512d8b  # decoder: 512 dim, 8 blocks
