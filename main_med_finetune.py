@@ -452,7 +452,7 @@ def main(args):
                 args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
                 loss_scaler=loss_scaler, epoch=epoch)
 
-            test_stats = evaluate_chestxray(data_loader_test, model, device, args)
+            test_stats = evaluate_medical(data_loader_test, model, device, args)
             print(f"Average AUC on the test set images: {test_stats['auc_avg']:.4f}")
             max_auc = max(max_auc, test_stats['auc_avg'])
             print(f'Max Average AUC: {max_auc:.4f}', {max_auc})
