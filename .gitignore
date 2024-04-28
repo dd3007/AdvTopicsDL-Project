@@ -4,6 +4,7 @@ __pycache__
 
 data/chexpert/
 data/chestxray14/
+data/downloads/
 
 work_dirs/
 
