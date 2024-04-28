@@ -24,7 +24,8 @@ srun python `which torchrun` \
     --batch_size 32 \
     --model vit_small_patch16 \
     --finetune "/mnt/home/mpaez/ceph/adp_model/distill/distilled_small_model_e1/checkpoint-49.pth" \
-    --epochs 100 \
+    --dataset chestxray14 \
+    --epochs 50 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
     --warmup_epochs 5 \
     --drop_path 0.2 \
