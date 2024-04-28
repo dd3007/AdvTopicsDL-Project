@@ -23,7 +23,7 @@ srun python `which torchrun` \
     --log_dir ${SAVE_DIR} \
     --batch_size 32 \
     --model vit_small_patch16 \
-    --finetune "small_mae_pretrained.pth" \
+    --finetune "/mnt/home/mpaez/ceph/adp_model/distill/distilled_small_model_e1/checkpoint-49.pth" \
     --epochs 100 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
     --warmup_epochs 5 \
