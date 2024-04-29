@@ -60,7 +60,7 @@ plt.title('Distillation Loss')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig(output_dir + '/distill_loss.png')
+plt.savefig(output_dir + '/knowledge_distillation_loss.png')
 plt.clf()
 
 # CHESTXRAY14 PLOTS
@@ -80,7 +80,7 @@ plt.title('Finetuning Train and Evaluation Loss on ChestXray14')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig(output_dir + '/finetune_chestxray14_loss.png')
+plt.savefig(output_dir + '/finetune_loss_chestxray14.png')
 plt.clf()
 
 # Finetuning evaluation metrics plot for chestxray14
@@ -95,7 +95,7 @@ plt.title('Evaluation mAUC on ChestXray14')
 plt.xlabel('Epoch')
 plt.ylabel('mAUC')
 plt.legend()
-plt.savefig(output_dir + '/finetune_chestxray14_eval_auc.png')
+plt.savefig(output_dir + '/finetune_auc_chestxray14.png')
 plt.clf()
 
 # CHEXPERT PLOTS
@@ -115,7 +115,7 @@ plt.title('Finetuning Train and Evaluation Loss on CheXpert')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig(output_dir + '/finetune_chexpert_loss.png')
+plt.savefig(output_dir + '/finetune_loss_chexpert.png')
 plt.clf()
 
 # Finetuning evaluation metrics plot for chexpert
@@ -130,5 +130,5 @@ plt.title('Evaluation mAUC on CheXpert')
 plt.xlabel('Epoch')
 plt.ylabel('mAUC')
 plt.legend()
-plt.savefig(output_dir + '/finetune_chexpert_eval_auc.png')
+plt.savefig(output_dir + '/finetune_auc_chexpert.png')
 plt.clf()
