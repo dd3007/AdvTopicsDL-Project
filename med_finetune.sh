@@ -10,8 +10,8 @@ OMP_NUM_THREADS=1 python -m torch.distributed.launch \
     --batch_size 32 \
     --model vit_tiny_patch16 \
     --finetune "checkpoint-small-tiny.pth" \
-    --dataset chestxray14 \
-    --nb_classes 14 \
+    --dataset chexpert \
+    --nb_classes 5 \
     --epochs 100 \
     --blr 2.5e-4 --layer_decay 0.55 --weight_decay 0.05 \
     --warmup_epochs 5 \
